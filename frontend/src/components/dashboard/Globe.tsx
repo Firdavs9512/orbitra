@@ -1,4 +1,4 @@
-import { useEffect, useRef, memo } from 'react'
+import { useEffect, useRef, memo, useCallback, useState } from 'react'
 import GlobeGL from 'globe.gl'
 import type { GlobeInstance } from 'globe.gl'
 import * as THREE from 'three'
@@ -8,10 +8,59 @@ interface GlobeProps {
   points: GlobePoint[]
 }
 
+interface GlobeArc {
+  startLat: number
+  startLng: number
+  endLat: number
+  endLng: number
+  color: [string, string]
+  stroke: number
+  label: string
+}
+
+function buildFlightArcs(points: GlobePoint[]): GlobeArc[] {
+  const hubs = [...points].sort((a, b) => b.users - a.users).slice(0, 8)
+  const arcs: GlobeArc[] = []
+
+  for (let i = 0; i < hubs.length; i++) {
+    for (let j = i + 1; j < hubs.length; j++) {
+      const from = hubs[i]
+      const to = hubs[j]
+      const traffic = from.users + to.users
+      if (traffic < 4) continue
+
+      arcs.push({
+        startLat: from.lat,
+        startLng: from.lng,
+        endLat: to.lat,
+        endLng: to.lng,
+        color: traffic > 20
+          ? ['rgba(68,204,255,0.65)', 'rgba(68,204,255,0.1)']
+          : ['rgba(100,240,200,0.5)', 'rgba(100,240,200,0.08)'],
+        stroke: Math.max(0.25, Math.min(1.2, traffic / 40)),
+        label: `${from.label} ↔ ${to.label}: ${traffic} active users`,
+      })
+    }
+  }
+
+  return arcs
+}
+
 function GlobeComponent({ points }: GlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const globeRef = useRef<GlobeInstance | null>(null)
   const initRef = useRef(false)
+  const [flightsVisible, setFlightsVisible] = useState(true)
+
+  const mapZoom = useCallback((factor: number) => {
+    const globe = globeRef.current
+    if (!globe) return
+
+    const pov = globe.pointOfView()
+    const altitude = typeof pov.altitude === 'number' ? pov.altitude : 2.3
+    const nextAltitude = Math.min(4.5, Math.max(0.55, altitude / factor))
+    globe.pointOfView({ ...pov, altitude: nextAltitude }, 600)
+  }, [])
 
   useEffect(() => {
     if (!containerRef.current || initRef.current) return
@@ -44,11 +93,22 @@ function GlobeComponent({ points }: GlobeProps) {
           </div>`
         },
       )
+      .onPointHover((pt: object | null) => {
+        container.style.cursor = pt ? 'pointer' : 'grab'
+      })
       // Rings layer (pulse effect)
       .ringColor(() => (t: number) => `rgba(100,240,200,${1 - t})`)
       .ringMaxRadius(3)
       .ringPropagationSpeed(2)
       .ringRepeatPeriod(2000)
+      // Arcs layer (flight corridors)
+      .arcColor((d: object) => (d as GlobeArc).color)
+      .arcStroke((d: object) => (d as GlobeArc).stroke)
+      .arcDashLength(0.4)
+      .arcDashGap(0.25)
+      .arcDashAnimateTime(2200)
+      .arcAltitudeAutoScale(0.35)
+      .arcLabel((d: object) => (d as GlobeArc).label)
 
     globeRef.current = globe
 
@@ -101,15 +161,17 @@ function GlobeComponent({ points }: GlobeProps) {
 
     // Pause auto-rotate on interaction
     let rotateTimeout: ReturnType<typeof setTimeout>
-    container.addEventListener('mousedown', () => {
+    const handleMouseDown = () => {
       controls.autoRotate = false
       clearTimeout(rotateTimeout)
-    })
-    container.addEventListener('mouseup', () => {
+    }
+    const handleMouseUp = () => {
       rotateTimeout = setTimeout(() => {
         controls.autoRotate = true
       }, 10000)
-    })
+    }
+    container.addEventListener('mousedown', handleMouseDown)
+    container.addEventListener('mouseup', handleMouseUp)
 
     // Resize
     const resizeObserver = new ResizeObserver((entries) => {
@@ -125,6 +187,8 @@ function GlobeComponent({ points }: GlobeProps) {
     return () => {
       resizeObserver.disconnect()
       clearTimeout(rotateTimeout)
+      container.removeEventListener('mousedown', handleMouseDown)
+      container.removeEventListener('mouseup', handleMouseUp)
       if (globeRef.current) {
         // Clean up Three.js renderer
         const r = globeRef.current.renderer()
@@ -140,7 +204,7 @@ function GlobeComponent({ points }: GlobeProps) {
     }
   }, [])
 
-  // Update points data when props change
+  // Update globe layers when data or controls change
   useEffect(() => {
     if (globeRef.current) {
       globeRef.current.pointsData(points)
@@ -150,17 +214,67 @@ function GlobeComponent({ points }: GlobeProps) {
         .filter((p) => p.users > 5)
         .map((p) => ({ lat: p.lat, lng: p.lng }))
       globeRef.current.ringsData(topPoints)
+
+      globeRef.current.arcsData(flightsVisible ? buildFlightArcs(points) : [])
     }
-  }, [points])
+  }, [points, flightsVisible])
 
   return (
     <div
-      ref={containerRef}
       className="w-full min-h-[480px] flex-1 border border-border relative overflow-hidden cursor-grab active:cursor-grabbing"
       style={{
         background: 'radial-gradient(ellipse at center, rgba(4,12,20,1), rgba(2,4,8,1))',
       }}
-    />
+    >
+      <div ref={containerRef} className="absolute inset-0" />
+
+      <div className="absolute top-2.5 right-2.5 z-20 pointer-events-none border border-[#1a3a2a] bg-black/45 px-2 py-1 font-mono text-[10px] tracking-[0.08em] text-[#6a8a82]">
+        SCROLL TO ZOOM · DRAG TO PAN
+      </div>
+
+      <div className="absolute top-2.5 left-2.5 z-20 flex items-start gap-1.5">
+        <div className="flex flex-col gap-1">
+          <button
+            type="button"
+            onClick={() => mapZoom(1.5)}
+            title="Zoom in"
+            className="h-7 w-7 border border-[#1a3a2a] bg-black/60 font-mono text-base leading-none text-[#6a8a82] transition-all hover:border-[#2f6b52] hover:text-[#64f0c8]"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            onClick={() => mapZoom(0.67)}
+            title="Zoom out"
+            className="h-7 w-7 border border-[#1a3a2a] bg-black/60 font-mono text-base leading-none text-[#6a8a82] transition-all hover:border-[#2f6b52] hover:text-[#64f0c8]"
+          >
+            &minus;
+          </button>
+          <button
+            type="button"
+            onClick={() => setFlightsVisible((v) => !v)}
+            title="Toggle flight routes"
+            className={`h-7 w-7 border bg-black/60 font-mono text-[11px] transition-all hover:border-[#2f6b52] hover:text-[#64f0c8] ${
+              flightsVisible
+                ? 'border-[#1a3a2a] text-[#6a8a82]'
+                : 'border-[#1a3a2a] text-[#6a8a82] opacity-40'
+            }`}
+          >
+            &#9992;
+          </button>
+        </div>
+        <button
+          type="button"
+          className="h-7 border border-[#1a3a2a] bg-black/60 px-2.5 font-mono text-[10px] tracking-[0.1em] text-[#6a8a82]"
+        >
+          GLOBE MODE
+        </button>
+      </div>
+
+      <div className="absolute right-2.5 bottom-2.5 z-20 pointer-events-none border border-[#1a3a2a] bg-black/45 px-2 py-1 font-mono text-[10px] tracking-[0.07em] text-[#6a8a82]">
+        ZOOM: + / &minus; · FLIGHTS: ✈ TOGGLE
+      </div>
+    </div>
   )
 }
 
