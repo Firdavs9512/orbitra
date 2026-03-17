@@ -6,7 +6,7 @@ interface GlassCardProps {
 export default function GlassCard({ children, className = '' }: GlassCardProps) {
   return (
     <div
-      className={`relative w-full max-w-md rounded-xl p-8 sm:p-6 overflow-hidden border border-border ${className}`}
+      className={`relative w-full rounded-xl p-8 sm:p-6 overflow-hidden border border-border ${className}`}
       style={{
         background: 'rgba(10, 20, 32, 0.55)',
         backdropFilter: 'blur(16px)',

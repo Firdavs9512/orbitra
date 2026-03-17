@@ -36,7 +36,7 @@ export default function LoginPage() {
 
   return (
     <AuthLayout>
-      <GlassCard>
+      <GlassCard className="max-w-md">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-mono text-[11px] uppercase tracking-[0.12em] text-dim">
