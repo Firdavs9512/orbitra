@@ -58,77 +58,65 @@ export default function RegisterPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div style={{ animation: 'fadein 0.3s ease forwards', animationDelay: '0.1s', opacity: 0 }}>
-            <Input
-              label="Full Name"
-              name="fullName"
-              value={values.fullName}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={errors.fullName}
-              placeholder="John Doe"
-            />
-          </div>
+          <Input
+            label="Full Name"
+            name="fullName"
+            value={values.fullName}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.fullName}
+            placeholder="John Doe"
+          />
 
-          <div style={{ animation: 'fadein 0.3s ease forwards', animationDelay: '0.15s', opacity: 0 }}>
-            <Input
-              label="Email Address"
-              name="email"
-              type="email"
-              value={values.email}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={errors.email}
-              placeholder="operator@orbitra.io"
-            />
-          </div>
+          <Input
+            label="Email Address"
+            name="email"
+            type="email"
+            value={values.email}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.email}
+            placeholder="operator@orbitra.io"
+          />
 
-          <div style={{ animation: 'fadein 0.3s ease forwards', animationDelay: '0.2s', opacity: 0 }}>
-            <Input
-              label="Password"
-              name="password"
-              type="password"
-              value={values.password}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={errors.password}
-              placeholder="••••••••"
-            />
-          </div>
+          <Input
+            label="Password"
+            name="password"
+            type="password"
+            value={values.password}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.password}
+            placeholder="••••••••"
+          />
 
-          <div style={{ animation: 'fadein 0.3s ease forwards', animationDelay: '0.25s', opacity: 0 }}>
-            <Input
-              label="Confirm Password"
-              name="confirmPassword"
-              type="password"
-              value={values.confirmPassword}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={errors.confirmPassword}
-              placeholder="••••••••"
-            />
-          </div>
+          <Input
+            label="Confirm Password"
+            name="confirmPassword"
+            type="password"
+            value={values.confirmPassword}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.confirmPassword}
+            placeholder="••••••••"
+          />
 
-          <div style={{ animation: 'fadein 0.3s ease forwards', animationDelay: '0.3s', opacity: 0 }}>
-            <Checkbox
-              label={
-                <>
-                  I accept the{' '}
-                  <Link to="#" className="text-accent2 hover:text-accent transition-colors">
-                    Terms of Service
-                  </Link>
-                </>
-              }
-              checked={acceptTerms}
-              onChange={setAcceptTerms}
-            />
-          </div>
+          <Checkbox
+            label={
+              <>
+                I accept the{' '}
+                <Link to="#" className="text-accent2 hover:text-accent transition-colors">
+                  Terms of Service
+                </Link>
+              </>
+            }
+            checked={acceptTerms}
+            onChange={setAcceptTerms}
+          />
 
-          <div style={{ animation: 'fadein 0.3s ease forwards', animationDelay: '0.35s', opacity: 0 }}>
-            <Button variant="primary" type="submit" disabled={!acceptTerms}>
-              Create Operator Account
-            </Button>
-          </div>
+          <Button variant="primary" type="submit" disabled={!acceptTerms}>
+            Create Operator Account
+          </Button>
         </form>
 
         {/* Footer */}
