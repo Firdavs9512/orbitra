@@ -4,7 +4,7 @@ import DashboardTopbar from '../components/dashboard/DashboardTopbar'
 import DashboardSidebar from '../components/dashboard/DashboardSidebar'
 import Globe from '../components/dashboard/Globe'
 import ActiveUsersCounter from '../components/dashboard/ActiveUsersCounter'
-import StatsGrid from '../components/dashboard/StatsGrid'
+
 import ActivityTimeline from '../components/dashboard/ActivityTimeline'
 import TopPages from '../components/dashboard/TopPages'
 import UsersByCountry from '../components/dashboard/UsersByCountry'
@@ -24,8 +24,10 @@ export default function DashboardPage() {
       main={
         <>
           <Globe points={data.globePoints} />
-          <StatsGrid stats={data.stats} />
-          <ActivityTimeline events={data.recentActivity} />
+          <div className="grid grid-cols-2 gap-2.5">
+            <TopPages pages={data.topPages} />
+            <UsersByCountry countries={data.topCountries} />
+          </div>
         </>
       }
       rightRail={
@@ -34,8 +36,7 @@ export default function DashboardPage() {
             count={data.stats.activeUsers}
             previousCount={previousActiveUsers}
           />
-          <TopPages pages={data.topPages} />
-          <UsersByCountry countries={data.topCountries} />
+          <ActivityTimeline events={data.recentActivity} />
         </>
       }
     />

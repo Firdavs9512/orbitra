@@ -8,7 +8,7 @@ interface ActivityTimelineProps {
 export default function ActivityTimeline({ events }: ActivityTimelineProps) {
   return (
     <div
-      className="border border-border relative overflow-hidden"
+      className="border border-border relative overflow-hidden flex-1 flex flex-col"
       style={{
         background: 'rgba(10, 20, 32, 0.55)',
         backdropFilter: 'blur(16px)',
@@ -29,9 +29,8 @@ export default function ActivityTimeline({ events }: ActivityTimelineProps) {
         </span>
       </div>
       <div
-        className="overflow-y-auto"
+        className="overflow-y-auto flex-1"
         style={{
-          maxHeight: '400px',
           scrollbarWidth: 'thin',
           scrollbarColor: 'rgba(100,240,200,0.15) transparent',
         }}
