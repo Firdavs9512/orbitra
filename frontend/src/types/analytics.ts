@@ -81,3 +81,18 @@ export interface GlobePoint {
   label: string
   users: number
 }
+
+export interface Website {
+  id: string
+  name: string
+  domain: string
+  trackingId: string
+  status: 'active' | 'pending' | 'inactive'
+  createdAt: string
+  lastDataAt: string | null
+  stats: {
+    activeUsers: number
+    pageViews24h: number
+    avgSessionDuration: number
+  }
+}

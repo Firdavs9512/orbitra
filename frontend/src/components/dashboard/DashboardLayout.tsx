@@ -2,7 +2,7 @@ interface DashboardLayoutProps {
   topbar: React.ReactNode
   sidebar: React.ReactNode
   main: React.ReactNode
-  rightRail: React.ReactNode
+  rightRail?: React.ReactNode
 }
 
 export default function DashboardLayout({ topbar, sidebar, main, rightRail }: DashboardLayoutProps) {
@@ -37,7 +37,7 @@ export default function DashboardLayout({ topbar, sidebar, main, rightRail }: Da
           className="flex-1 mt-2.5 gap-2.5 min-h-0"
           style={{
             display: 'grid',
-            gridTemplateColumns: '56px 1fr 340px',
+            gridTemplateColumns: rightRail ? '56px 1fr 340px' : '56px 1fr',
           }}
         >
           {/* Sidebar */}
@@ -52,12 +52,14 @@ export default function DashboardLayout({ topbar, sidebar, main, rightRail }: Da
           </div>
 
           {/* Right rail */}
-          <div className="flex flex-col gap-2.5 min-h-0 overflow-y-auto" style={{
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'rgba(100,240,200,0.15) transparent',
-          }}>
-            {rightRail}
-          </div>
+          {rightRail && (
+            <div className="flex flex-col gap-2.5 min-h-0 overflow-y-auto" style={{
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'rgba(100,240,200,0.15) transparent',
+            }}>
+              {rightRail}
+            </div>
+          )}
         </div>
       </div>
     </div>

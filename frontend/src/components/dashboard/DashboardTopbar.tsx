@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 
 interface DashboardTopbarProps {
-  isConnected: boolean
-  activeUsers: number
+  isConnected?: boolean
+  activeUsers?: number
 }
 
-export default function DashboardTopbar({ isConnected, activeUsers }: DashboardTopbarProps) {
+export default function DashboardTopbar({ isConnected = true, activeUsers }: DashboardTopbarProps) {
   const [time, setTime] = useState(new Date())
 
   useEffect(() => {
@@ -47,9 +47,11 @@ export default function DashboardTopbar({ isConnected, activeUsers }: DashboardT
 
       {/* Right: Status */}
       <div className="flex items-center gap-4">
-        <div className="font-mono text-[11px] text-dim px-2.5 py-1 border border-border">
-          Users <span className="text-text font-medium">{activeUsers.toLocaleString()}</span>
-        </div>
+        {activeUsers !== undefined && (
+          <div className="font-mono text-[11px] text-dim px-2.5 py-1 border border-border">
+            Users <span className="text-text font-medium">{activeUsers.toLocaleString()}</span>
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <span
             className={`w-2 h-2 rounded-full ${isConnected ? 'bg-accent' : 'bg-danger'}`}
