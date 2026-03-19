@@ -26,7 +26,7 @@ export function loadConfig(): OrbitraConfig {
     },
     redis: { url: 'redis://localhost:6379', prefix: 'orb:' },
     auth: { jwtSecret: 'change-me-in-production', jwtExpiresIn: '7d' },
-    cors: { origins: ['http://localhost:5173'] },
+    cors: { origins: ['http://localhost:5173', 'http://localhost:5174'] },
     tracker: { sessionTimeoutMinutes: 30 },
     realtime: { broadcastIntervalMs: 2000, activeUserTtlSeconds: 60 },
   }

@@ -1,14 +1,19 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/auth/AuthLayout'
 import GlassCard from '../components/ui/GlassCard'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
 import Checkbox from '../components/ui/Checkbox'
 import useFormValidation from '../hooks/useFormValidation'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false)
+  const [apiError, setApiError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { login } = useAuth()
+  const navigate = useNavigate()
 
   const { values, errors, handleChange, handleBlur, validate } = useFormValidation(
     { email: '', password: '' },
@@ -27,10 +32,19 @@ export default function LoginPage() {
     },
   )
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (validate()) {
-      console.log('Login:', { ...values, rememberMe })
+    if (!validate()) return
+
+    setApiError(null)
+    setIsSubmitting(true)
+    try {
+      await login(values.email, values.password)
+      navigate('/sites')
+    } catch (err) {
+      setApiError(err instanceof Error ? err.message : 'Login failed')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -94,8 +108,14 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          <Button variant="primary" type="submit">
-            Authenticate
+          {apiError && (
+            <div className="font-mono text-[10px] text-danger tracking-wider text-center py-2 border border-danger/30 rounded-lg bg-danger/5">
+              {apiError}
+            </div>
+          )}
+
+          <Button variant="primary" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Authenticating...' : 'Authenticate'}
           </Button>
         </form>
 
