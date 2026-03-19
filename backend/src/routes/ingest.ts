@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 import { generateId } from '../utils/id'
 import { parseUserAgent } from '../utils/ua'
 import { geoLookup } from '../services/geo'
@@ -12,6 +13,9 @@ const ingest = new Hono<{
     realtime: RealtimeService
   }
 }>()
+
+// Tracking endpointlari har qanday domaindan kelishi kerak
+ingest.use('*', cors({ origin: '*', allowMethods: ['POST', 'OPTIONS'], allowHeaders: ['Content-Type'] }))
 
 // POST /api/event — no auth required, validated by trackingId
 ingest.post('/event', async (c) => {
