@@ -1,3 +1,4 @@
+import { useParams, Navigate } from 'react-router-dom'
 import useRealtimeAnalytics from '../hooks/useRealtimeAnalytics'
 import DashboardLayout from '../components/dashboard/DashboardLayout'
 import DashboardTopbar from '../components/dashboard/DashboardTopbar'
@@ -10,7 +11,11 @@ import TopPages from '../components/dashboard/TopPages'
 import UsersByCountry from '../components/dashboard/UsersByCountry'
 
 export default function DashboardPage() {
-  const { data, isConnected, previousActiveUsers } = useRealtimeAnalytics()
+  const { siteId } = useParams<{ siteId: string }>()
+
+  if (!siteId) return <Navigate to="/sites" replace />
+
+  const { data, isConnected, previousActiveUsers } = useRealtimeAnalytics(siteId)
 
   return (
     <DashboardLayout
@@ -23,7 +28,7 @@ export default function DashboardPage() {
       sidebar={<DashboardSidebar />}
       main={
         <>
-          <Globe points={data.globePoints} />
+          <Globe points={data.globePoints} serverLocation={data.serverLocation} />
           <div className="grid grid-cols-2 gap-2.5">
             <TopPages pages={data.topPages} />
             <UsersByCountry countries={data.topCountries} />

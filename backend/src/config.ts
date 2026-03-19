@@ -10,6 +10,7 @@ export interface OrbitraConfig {
   cors: { origins: string[] }
   tracker: { sessionTimeoutMinutes: number }
   realtime: { broadcastIntervalMs: number; activeUserTtlSeconds: number }
+  geo: { defaultLat: number; defaultLng: number; defaultCity: string; defaultCountry: string; defaultCountryCode: string }
 }
 
 let _config: OrbitraConfig | null = null
@@ -29,6 +30,7 @@ export function loadConfig(): OrbitraConfig {
     cors: { origins: ['http://localhost:5173', 'http://localhost:5174'] },
     tracker: { sessionTimeoutMinutes: 30 },
     realtime: { broadcastIntervalMs: 2000, activeUserTtlSeconds: 60 },
+    geo: { defaultLat: 0, defaultLng: 0, defaultCity: 'Unknown', defaultCountry: 'Unknown', defaultCountryCode: 'XX' },
   }
 
   // Load from orbitra.config.ts if exists (runtime)
@@ -42,6 +44,7 @@ export function loadConfig(): OrbitraConfig {
       Object.assign(config.cors, userConfig.cors)
       Object.assign(config.tracker, userConfig.tracker)
       Object.assign(config.realtime, userConfig.realtime)
+      if (userConfig.geo) Object.assign(config.geo, userConfig.geo)
     }
   } catch {}
 

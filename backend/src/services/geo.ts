@@ -1,5 +1,6 @@
 import maxmind, { type CityResponse, type Reader } from 'maxmind'
 import * as geolite2 from 'geolite2-redist'
+import { getConfig } from '../config'
 
 let lookup: Reader<CityResponse> | null = null
 
@@ -22,25 +23,37 @@ export interface GeoResult {
   countryCode: string
 }
 
-export function geoLookup(ip: string): GeoResult {
-  const fallback: GeoResult = { lat: 0, lng: 0, city: 'Unknown', country: 'Unknown', countryCode: 'XX' }
-
-  if (!lookup) return fallback
-
-  if (ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
-    return fallback
+function getDefaultGeo(): GeoResult {
+  const config = getConfig()
+  return {
+    lat: config.geo.defaultLat,
+    lng: config.geo.defaultLng,
+    city: config.geo.defaultCity,
+    country: config.geo.defaultCountry,
+    countryCode: config.geo.defaultCountryCode,
   }
+}
+
+function isPrivateIp(ip: string): boolean {
+  return ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')
+}
+
+export function geoLookup(ip: string): GeoResult {
+  const fallback = getDefaultGeo()
+
+  if (isPrivateIp(ip)) return fallback
+  if (!lookup) return fallback
 
   try {
     const result = lookup.get(ip)
     if (!result) return fallback
 
     return {
-      lat: result.location?.latitude ?? 0,
-      lng: result.location?.longitude ?? 0,
-      city: result.city?.names?.en ?? 'Unknown',
-      country: result.country?.names?.en ?? 'Unknown',
-      countryCode: result.country?.iso_code ?? 'XX',
+      lat: result.location?.latitude ?? fallback.lat,
+      lng: result.location?.longitude ?? fallback.lng,
+      city: result.city?.names?.en ?? fallback.city,
+      country: result.country?.names?.en ?? fallback.country,
+      countryCode: result.country?.iso_code ?? fallback.countryCode,
     }
   } catch {
     return fallback

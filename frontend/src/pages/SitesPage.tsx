@@ -116,7 +116,7 @@ function WebsiteCard({ site }: { site: Website }) {
           <div className="flex items-center gap-2">
             <Button
               variant="primary"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate(`/dashboard/${site.id}`)}
               className="!w-auto !py-1.5 !px-4 !text-[9px]"
             >
               Open Dashboard

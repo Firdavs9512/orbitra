@@ -3,7 +3,7 @@ import type { OrbitraConfig } from '../config'
 import type { DatabaseProvider } from '../providers/interface'
 import type {
   EventRow, ActiveUser, ActivityEvent, DashboardData,
-  AnalyticsStats, CountryStats, PageStats, TrafficSource, GlobePoint,
+  AnalyticsStats, CountryStats, PageStats, TrafficSource, GlobePoint, ServerLocation,
 } from '../types'
 
 const SOURCE_COLORS: Record<string, string> = {
@@ -190,6 +190,13 @@ export class RealtimeService {
     const trafficSources = this.computeTrafficSources(users)
     const globePoints = this.computeGlobePoints(users)
 
+    const serverLocation: ServerLocation = {
+      lat: this.config.geo.defaultLat,
+      lng: this.config.geo.defaultLng,
+      city: this.config.geo.defaultCity,
+      country: this.config.geo.defaultCountry,
+    }
+
     return {
       stats,
       activeUsers: users,
@@ -198,6 +205,7 @@ export class RealtimeService {
       topCountries,
       trafficSources,
       globePoints,
+      serverLocation,
     }
   }
 

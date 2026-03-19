@@ -64,7 +64,7 @@ const NAV_ITEMS = [
 
 function getActiveId(pathname: string): string {
   if (pathname.startsWith('/sites')) return 'sites'
-  if (pathname === '/dashboard') return 'dashboard'
+  if (pathname.startsWith('/dashboard')) return 'dashboard'
   return 'dashboard'
 }
 
@@ -73,6 +73,9 @@ export default function DashboardSidebar() {
   const location = useLocation()
   const { logout } = useAuth()
   const active = getActiveId(location.pathname)
+
+  const siteIdMatch = location.pathname.match(/^\/dashboard\/(.+)/)
+  const dashboardPath = siteIdMatch ? `/dashboard/${siteIdMatch[1]}` : '/sites'
 
   return (
     <div
@@ -85,7 +88,7 @@ export default function DashboardSidebar() {
       {NAV_ITEMS.map((item) => (
         <button
           key={item.id}
-          onClick={() => navigate(item.path)}
+          onClick={() => navigate(item.path === '/dashboard' ? dashboardPath : item.path)}
           title={item.label}
           className={`
             relative w-10 h-10 flex items-center justify-center rounded transition-all duration-200 cursor-pointer

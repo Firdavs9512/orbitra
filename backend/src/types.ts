@@ -117,6 +117,13 @@ export interface GlobePoint {
   users: number
 }
 
+export interface ServerLocation {
+  lat: number
+  lng: number
+  city: string
+  country: string
+}
+
 export interface DashboardData {
   stats: AnalyticsStats
   activeUsers: ActiveUser[]
@@ -125,6 +132,7 @@ export interface DashboardData {
   topCountries: CountryStats[]
   trafficSources: TrafficSource[]
   globePoints: GlobePoint[]
+  serverLocation: ServerLocation
 }
 
 export interface Website {

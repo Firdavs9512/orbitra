@@ -39,4 +39,12 @@ export default {
     broadcastIntervalMs: 2000,
     activeUserTtlSeconds: 60,
   },
+
+  geo: {
+    defaultLat: 41.2995,
+    defaultLng: 69.2401,
+    defaultCity: 'Tashkent',
+    defaultCountry: 'Uzbekistan',
+    defaultCountryCode: 'UZ',
+  },
 }

@@ -6,10 +6,11 @@ import * as THREE from 'three'
 import { geoNaturalEarth1, geoPath, geoGraticule, geoInterpolate } from 'd3-geo'
 import type { Topology } from 'topojson-specification'
 import { feature, mesh } from 'topojson-client'
-import type { GlobePoint } from '../../types/analytics'
+import type { GlobePoint, ServerLocation } from '../../types/analytics'
 
 interface GlobeProps {
   points: GlobePoint[]
+  serverLocation: ServerLocation
 }
 
 interface GlobeArc {
@@ -41,35 +42,34 @@ interface FlatArc {
   label: string
 }
 
-function buildFlightArcs(points: GlobePoint[]): GlobeArc[] {
-  const hubs = [...points].sort((a, b) => b.users - a.users).slice(0, 8)
+function buildFlightArcs(points: GlobePoint[], serverLocation: ServerLocation): GlobeArc[] {
+  if (!serverLocation.lat && !serverLocation.lng) return []
+
   const arcs: GlobeArc[] = []
+  const serverLabel = `${serverLocation.city}, ${serverLocation.country}`
 
-  for (let i = 0; i < hubs.length; i++) {
-    for (let j = i + 1; j < hubs.length; j++) {
-      const from = hubs[i]
-      const to = hubs[j]
-      const traffic = from.users + to.users
-      if (traffic < 4) continue
+  for (const point of points) {
+    // Skip if point is at the same location as server
+    if (point.lat === serverLocation.lat && point.lng === serverLocation.lng) continue
 
-      arcs.push({
-        startLat: from.lat,
-        startLng: from.lng,
-        endLat: to.lat,
-        endLng: to.lng,
-        color:
-          traffic > 20
-            ? ['rgba(68,204,255,0.65)', 'rgba(68,204,255,0.1)']
-            : ['rgba(100,240,200,0.5)', 'rgba(100,240,200,0.08)'],
-        stroke: Math.max(0.25, Math.min(1.2, traffic / 40)),
-        label: `${from.label} ↔ ${to.label}: ${traffic} active users`,
-      })
-    }
+    arcs.push({
+      startLat: point.lat,
+      startLng: point.lng,
+      endLat: serverLocation.lat,
+      endLng: serverLocation.lng,
+      color:
+        point.users > 10
+          ? ['rgba(68,204,255,0.65)', 'rgba(68,204,255,0.1)']
+          : ['rgba(100,240,200,0.5)', 'rgba(100,240,200,0.08)'],
+      stroke: Math.max(0.25, Math.min(1.2, point.users / 20)),
+      label: `${point.label} → ${serverLabel}: ${point.users} active user${point.users > 1 ? 's' : ''}`,
+    })
   }
+
   return arcs
 }
 
-function GlobeComponent({ points }: GlobeProps) {
+function GlobeComponent({ points, serverLocation }: GlobeProps) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const globeRef = useRef<GlobeInstance | null>(null)
@@ -82,7 +82,7 @@ function GlobeComponent({ points }: GlobeProps) {
   const [flatSize, setFlatSize] = useState({ width: 900, height: 500 })
   const [worldTopojson, setWorldTopojson] = useState<unknown>(null)
 
-  const allArcs = useMemo(() => buildFlightArcs(points), [points])
+  const allArcs = useMemo(() => buildFlightArcs(points, serverLocation), [points, serverLocation])
 
   // D3 projection — Natural Earth 1 (same as Crucix)
   const projection = useMemo(() => {
@@ -139,6 +139,14 @@ function GlobeComponent({ points }: GlobeProps) {
     }).filter((p): p is FlatPoint => p !== null)
   }, [points, projection])
 
+  // Server marker on flat map
+  const flatServerPoint = useMemo(() => {
+    if (!serverLocation.lat && !serverLocation.lng) return null
+    const projected = projection([serverLocation.lng, serverLocation.lat])
+    if (!projected) return null
+    return { x: projected[0], y: projected[1] }
+  }, [serverLocation, projection])
+
   // Flat map arcs — great circle interpolation (same as Crucix)
   const flatArcs = useMemo<FlatArc[]>(() => {
     return allArcs.map((arc) => {
@@ -168,6 +176,7 @@ function GlobeComponent({ points }: GlobeProps) {
     () => [
       { color: '#64f0c8', label: 'Active Users' },
       { color: '#44ccff', label: 'High Traffic' },
+      { color: '#ff6b6b', label: 'Server' },
       { color: 'rgba(100,240,200,0.5)', label: 'Routes' },
     ],
     [],
@@ -344,11 +353,18 @@ function GlobeComponent({ points }: GlobeProps) {
   // Update globe data
   useEffect(() => {
     if (!globeRef.current) return
-    globeRef.current.pointsData(points)
-    const topPoints = points.filter((p) => p.users > 5).map((p) => ({ lat: p.lat, lng: p.lng }))
-    globeRef.current.ringsData(topPoints)
+    const serverPoint: GlobePoint | null = (serverLocation.lat || serverLocation.lng)
+      ? { lat: serverLocation.lat, lng: serverLocation.lng, size: 0.35, color: '#ff6b6b', label: `${serverLocation.city}, ${serverLocation.country} (Server)`, users: 0 }
+      : null
+    const allPoints = serverPoint ? [...points, serverPoint] : points
+    globeRef.current.pointsData(allPoints)
+    const ringPoints = [
+      ...points.filter((p) => p.users > 5).map((p) => ({ lat: p.lat, lng: p.lng })),
+      ...(serverPoint ? [{ lat: serverPoint.lat, lng: serverPoint.lng }] : []),
+    ]
+    globeRef.current.ringsData(ringPoints)
     globeRef.current.arcsData(flightsVisible ? allArcs : [])
-  }, [points, flightsVisible, allArcs])
+  }, [points, flightsVisible, allArcs, serverLocation])
 
   // Toggle auto-rotate in flat mode
   useEffect(() => {
@@ -516,6 +532,29 @@ function GlobeComponent({ points }: GlobeProps) {
               <title>{`${p.label}: ${p.users} active users`}</title>
             </g>
           ))}
+
+          {/* Server location marker */}
+          {flatServerPoint && (
+            <g filter="url(#glow)">
+              <circle
+                cx={flatServerPoint.x}
+                cy={flatServerPoint.y}
+                r={6}
+                fill="none"
+                stroke="#ff6b6b"
+                strokeWidth={1.5}
+                opacity={0.8}
+              />
+              <circle
+                cx={flatServerPoint.x}
+                cy={flatServerPoint.y}
+                r={3}
+                fill="#ff6b6b"
+                opacity={1}
+              />
+              <title>{`${serverLocation.city}, ${serverLocation.country} (Server)`}</title>
+            </g>
+          )}
         </svg>
       </div>
 
