@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import DashboardLayout from '../components/dashboard/DashboardLayout'
 import DashboardTopbar from '../components/dashboard/DashboardTopbar'
 import DashboardSidebar from '../components/dashboard/DashboardSidebar'
 import GlassCard from '../components/ui/GlassCard'
 import Button from '../components/ui/Button'
-import { mockSites } from '../data/mockSites'
+import { api } from '../lib/api'
 import type { Website } from '../types/analytics'
 
 const statusConfig = {
@@ -157,7 +157,16 @@ function EmptyState() {
 }
 
 export default function SitesPage() {
-  const sites = mockSites
+  const [sites, setSites] = useState<Website[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    api.get<Website[]>('/api/sites')
+      .then(setSites)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <DashboardLayout
@@ -181,7 +190,22 @@ export default function SitesPage() {
           </div>
 
           {/* Grid or Empty State */}
-          {sites.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <span className="font-mono text-[11px] text-dim uppercase tracking-wider animate-pulse">
+                Loading websites...
+              </span>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <span className="font-mono text-[11px] text-red-400 uppercase tracking-wider">
+                {error}
+              </span>
+              <Button variant="ghost" onClick={() => window.location.reload()} className="!w-auto !px-6">
+                Retry
+              </Button>
+            </div>
+          ) : sites.length === 0 ? (
             <EmptyState />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

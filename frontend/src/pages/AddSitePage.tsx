@@ -7,15 +7,8 @@ import GlassCard from '../components/ui/GlassCard'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
 import useFormValidation from '../hooks/useFormValidation'
-
-function generateTrackingId(): string {
-  const chars = '0123456789ABCDEF'
-  let id = 'ORB-'
-  for (let i = 0; i < 8; i++) {
-    id += chars[Math.floor(Math.random() * chars.length)]
-  }
-  return id
-}
+import { api } from '../lib/api'
+import type { Website } from '../types/analytics'
 
 /* ── Orbital fon animatsiyasi ── */
 function OrbitalBackground({ generated }: { generated: boolean }) {
@@ -231,6 +224,9 @@ export default function AddSitePage() {
   const [codeCopied, setCodeCopied] = useState(false)
   const [idCopied, setIdCopied] = useState(false)
 
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
   const { values, errors, handleChange, handleBlur, validate } = useFormValidation(
     { name: '', domain: '' },
     {
@@ -248,10 +244,22 @@ export default function AddSitePage() {
     },
   )
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (validate()) {
-      setTrackingId(generateTrackingId())
+    if (!validate()) return
+
+    setSubmitting(true)
+    setSubmitError(null)
+    try {
+      const site = await api.post<Website>('/api/sites', {
+        name: values.name,
+        domain: values.domain,
+      })
+      setTrackingId(site.trackingId)
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to create site')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -321,8 +329,14 @@ export default function AddSitePage() {
                       placeholder="example.com"
                     />
 
-                    <Button variant="primary" type="submit">
-                      Generate Tracking Code
+                    {submitError && (
+                      <div className="font-mono text-[11px] text-red-400 tracking-wider">
+                        {submitError}
+                      </div>
+                    )}
+
+                    <Button variant="primary" type="submit" disabled={submitting}>
+                      {submitting ? 'Creating...' : 'Generate Tracking Code'}
                     </Button>
                   </form>
 
