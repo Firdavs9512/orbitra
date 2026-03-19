@@ -1,0 +1,22 @@
+{
+  "name": "orbitra-backend",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/server.ts",
+    "start": "bun src/server.ts"
+  },
+  "dependencies": {
+    "hono": "^4.7.0",
+    "ioredis": "^5.4.0",
+    "maxmind": "^4.3.0",
+    "geolite2-redist": "^3.1.0",
+    "ua-parser-js": "^2.0.0",
+    "nanoid": "^5.1.0",
+    "@clickhouse/client": "^1.8.0"
+  },
+  "devDependencies": {
+    "@types/ua-parser-js": "^0.7.0",
+    "bun-types": "latest"
+  }
+}
