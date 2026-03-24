@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface DashboardTopbarProps {
   isConnected?: boolean
@@ -7,10 +7,25 @@ interface DashboardTopbarProps {
 
 export default function DashboardTopbar({ isConnected = true, activeUsers }: DashboardTopbarProps) {
   const [time, setTime] = useState(new Date())
+  const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement)
 
   useEffect(() => {
     const interval = setInterval(() => setTime(new Date()), 1000)
     return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', onChange)
+    return () => document.removeEventListener('fullscreenchange', onChange)
+  }, [])
+
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen()
+    } else {
+      document.documentElement.requestFullscreen()
+    }
   }, [])
 
   const formatTime = (d: Date) =>
@@ -45,7 +60,7 @@ export default function DashboardTopbar({ isConnected = true, activeUsers }: Das
         <span className="font-mono text-[10px] text-dim">UTC{time.getTimezoneOffset() <= 0 ? '+' : '-'}{Math.abs(Math.floor(time.getTimezoneOffset() / 60))}</span>
       </div>
 
-      {/* Right: Status */}
+      {/* Right: Status + Controls */}
       <div className="flex items-center gap-4">
         {activeUsers !== undefined && (
           <div className="font-mono text-[11px] text-dim px-2.5 py-1 border border-border">
@@ -66,6 +81,29 @@ export default function DashboardTopbar({ isConnected = true, activeUsers }: Das
             {isConnected ? 'Live' : 'Offline'}
           </span>
         </div>
+        <button
+          onClick={toggleFullscreen}
+          className="w-8 h-8 flex items-center justify-center text-dim hover:text-accent border border-border hover:border-accent/40 transition-colors cursor-pointer"
+          title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            {isFullscreen ? (
+              <>
+                <polyline points="4 14 10 14 10 20" />
+                <polyline points="20 10 14 10 14 4" />
+                <line x1="3" y1="21" x2="10" y2="14" />
+                <line x1="21" y1="3" x2="14" y2="10" />
+              </>
+            ) : (
+              <>
+                <polyline points="15 3 21 3 21 9" />
+                <polyline points="9 21 3 21 3 15" />
+                <line x1="21" y1="3" x2="14" y2="10" />
+                <line x1="3" y1="21" x2="10" y2="14" />
+              </>
+            )}
+          </svg>
+        </button>
       </div>
     </div>
   )
