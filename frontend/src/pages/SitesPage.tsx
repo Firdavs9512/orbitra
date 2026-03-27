@@ -6,6 +6,7 @@ import DashboardSidebar from '../components/dashboard/DashboardSidebar'
 import GlassCard from '../components/ui/GlassCard'
 import Button from '../components/ui/Button'
 import { api } from '../lib/api'
+import { useAuth } from '../contexts/AuthContext'
 import type { Website } from '../types/analytics'
 
 const statusConfig = {
@@ -128,7 +129,7 @@ function WebsiteCard({ site }: { site: Website }) {
   )
 }
 
-function EmptyState() {
+function EmptyState({ isAdmin }: { isAdmin: boolean }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 gap-6">
       <div
@@ -144,19 +145,22 @@ function EmptyState() {
       <div className="text-center">
         <p className="font-sans text-text text-lg mb-1">No websites yet</p>
         <p className="font-mono text-[11px] text-dim uppercase tracking-wider">
-          Connect your first website to start tracking
+          {isAdmin ? 'Connect your first website to start tracking' : 'No websites available to view'}
         </p>
       </div>
-      <Link to="/sites/new">
-        <Button variant="primary" className="!w-auto !px-8">
-          Add Your First Website
-        </Button>
-      </Link>
+      {isAdmin && (
+        <Link to="/sites/new">
+          <Button variant="primary" className="!w-auto !px-8">
+            Add Your First Website
+          </Button>
+        </Link>
+      )}
     </div>
   )
 }
 
 export default function SitesPage() {
+  const { isAdmin } = useAuth()
   const [sites, setSites] = useState<Website[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -177,16 +181,20 @@ export default function SitesPage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="font-sans text-text text-2xl font-semibold">Your Websites</h1>
+              <h1 className="font-sans text-text text-2xl font-semibold">
+                {isAdmin ? 'All Websites' : 'Your Websites'}
+              </h1>
               <p className="font-mono text-[11px] text-dim uppercase tracking-wider mt-1">
                 {sites.length} properties connected
               </p>
             </div>
-            <Link to="/sites/new">
-              <Button variant="primary" className="!w-auto !px-6">
-                + Add Website
-              </Button>
-            </Link>
+            {isAdmin && (
+              <Link to="/sites/new">
+                <Button variant="primary" className="!w-auto !px-6">
+                  + Add Website
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Grid or Empty State */}
@@ -206,7 +214,7 @@ export default function SitesPage() {
               </Button>
             </div>
           ) : sites.length === 0 ? (
-            <EmptyState />
+            <EmptyState isAdmin={isAdmin} />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {sites.map((site) => (

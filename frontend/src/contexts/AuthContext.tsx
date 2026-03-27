@@ -6,6 +6,7 @@ import type { User, AuthResponse } from '../types/auth'
 interface AuthContextType {
   user: User | null
   isLoading: boolean
+  isAdmin: boolean
   login: (email: string, password: string) => Promise<void>
   register: (fullName: string, email: string, password: string) => Promise<void>
   logout: () => void
@@ -51,8 +52,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     navigate('/login')
   }, [navigate])
 
+  const isAdmin = user?.role === 'admin'
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, isAdmin, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   )

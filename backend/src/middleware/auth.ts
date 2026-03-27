@@ -13,9 +13,18 @@ export const authMiddleware = createMiddleware(async (c, next) => {
     const payload = await verify(token, getConfig().auth.jwtSecret, 'HS256')
     c.set('userId', payload.sub as string)
     c.set('userEmail', payload.email as string)
+    c.set('userRole', payload.role as string)
   } catch {
     return c.json({ error: 'Invalid token' }, 401)
   }
 
+  await next()
+})
+
+export const adminMiddleware = createMiddleware(async (c, next) => {
+  const userRole = c.get('userRole')
+  if (userRole !== 'admin') {
+    return c.json({ error: 'Forbidden: Admin access required' }, 403)
+  }
   await next()
 })

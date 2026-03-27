@@ -2,11 +2,14 @@
 
 export type Period = '5m' | '30m' | '1h' | '24h' | '7d' | '30d'
 
+export type UserRole = 'admin' | 'viewer'
+
 export interface UserRow {
   id: string
   email: string
   fullName: string
   passwordHash: string
+  role: UserRole
   createdAt: string
 }
 

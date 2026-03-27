@@ -38,6 +38,7 @@ export class ClickHouseProvider implements DatabaseProvider {
       query: `
         CREATE TABLE IF NOT EXISTS ${this.config.database}.users (
           id String, email String, full_name String, password_hash String,
+          role String DEFAULT 'viewer',
           created_at DateTime64(3, 'UTC') DEFAULT now64()
         ) ENGINE = MergeTree() ORDER BY id
       `,
@@ -77,10 +78,10 @@ export class ClickHouseProvider implements DatabaseProvider {
 
   // ── Users ──
 
-  async createUser(user: { id: string; email: string; fullName: string; passwordHash: string }): Promise<void> {
+  async createUser(user: { id: string; email: string; fullName: string; passwordHash: string; role: string }): Promise<void> {
     await this.client.insert({
       table: 'users',
-      values: [{ id: user.id, email: user.email, full_name: user.fullName, password_hash: user.passwordHash }],
+      values: [{ id: user.id, email: user.email, full_name: user.fullName, password_hash: user.passwordHash, role: user.role }],
       format: 'JSONEachRow',
     })
   }
@@ -89,14 +90,46 @@ export class ClickHouseProvider implements DatabaseProvider {
     const rows = await query(this.client, 'SELECT * FROM users WHERE email = {email:String} LIMIT 1', { email })
     if (rows.length === 0) return null
     const r = rows[0]
-    return { id: r.id, email: r.email, fullName: r.full_name, passwordHash: r.password_hash, createdAt: r.created_at }
+    return { id: r.id, email: r.email, fullName: r.full_name, passwordHash: r.password_hash, role: r.role, createdAt: r.created_at }
   }
 
   async getUserById(id: string): Promise<UserRow | null> {
     const rows = await query(this.client, 'SELECT * FROM users WHERE id = {id:String} LIMIT 1', { id })
     if (rows.length === 0) return null
     const r = rows[0]
-    return { id: r.id, email: r.email, fullName: r.full_name, passwordHash: r.password_hash, createdAt: r.created_at }
+    return { id: r.id, email: r.email, fullName: r.full_name, passwordHash: r.password_hash, role: r.role, createdAt: r.created_at }
+  }
+
+  async getAllUsers(): Promise<UserRow[]> {
+    const rows = await query(this.client, 'SELECT * FROM users ORDER BY created_at DESC', {})
+    return rows.map(r => ({
+      id: r.id,
+      email: r.email,
+      fullName: r.full_name,
+      passwordHash: r.password_hash,
+      role: r.role,
+      createdAt: r.created_at
+    }))
+  }
+
+  async updateUserRole(userId: string, role: string): Promise<void> {
+    const user = await this.getUserById(userId)
+    if (!user) return
+    await this.client.insert({
+      table: 'users',
+      values: [{ id: user.id, email: user.email, full_name: user.fullName, password_hash: user.passwordHash, role, created_at: user.createdAt }],
+      format: 'JSONEachRow',
+    })
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    await this.client.exec({ query: `ALTER TABLE sites DELETE WHERE user_id = '${userId}'` })
+    await this.client.exec({ query: `ALTER TABLE users DELETE WHERE id = '${userId}'` })
+  }
+
+  async getUserCount(): Promise<number> {
+    const rows = await query(this.client, 'SELECT count() as count FROM users', {})
+    return Number(rows[0]?.count ?? 0)
   }
 
   // ── Sites ──
@@ -111,6 +144,11 @@ export class ClickHouseProvider implements DatabaseProvider {
 
   async getSitesByUserId(userId: string): Promise<SiteRow[]> {
     const rows = await query(this.client, 'SELECT * FROM sites FINAL WHERE user_id = {userId:String} ORDER BY created_at DESC', { userId })
+    return rows.map(this.mapSiteRow)
+  }
+
+  async getAllSites(): Promise<SiteRow[]> {
+    const rows = await query(this.client, 'SELECT * FROM sites FINAL ORDER BY created_at DESC', {})
     return rows.map(this.mapSiteRow)
   }
 
