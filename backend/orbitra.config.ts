@@ -28,7 +28,12 @@ export default {
   },
 
   cors: {
-    origins: ['http://localhost:5173', 'http://localhost:5174'],
+    // Default: Allow all origins (*) for easy self-hosting
+    // For production, specify exact origins: ['https://yourdomain.com']
+    origins: ['*'],
+    // Credentials: When origins is '*', credentials will be automatically set to false
+    // When specific origins are set, credentials can be true for cookie/auth support
+    credentials: true,
   },
 
   tracker: {

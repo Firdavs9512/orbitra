@@ -7,7 +7,7 @@ export interface OrbitraConfig {
   }
   redis: { url: string; prefix: string }
   auth: { jwtSecret: string; jwtExpiresIn: string }
-  cors: { origins: string[] }
+  cors: { origins: string[]; credentials: boolean }
   tracker: { sessionTimeoutMinutes: number }
   realtime: { broadcastIntervalMs: number; activeUserTtlSeconds: number }
   geo: { defaultLat: number; defaultLng: number; defaultCity: string; defaultCountry: string; defaultCountryCode: string }
@@ -27,7 +27,7 @@ export function loadConfig(): OrbitraConfig {
     },
     redis: { url: 'redis://localhost:6379', prefix: 'orb:' },
     auth: { jwtSecret: 'change-me-in-production', jwtExpiresIn: '7d' },
-    cors: { origins: ['http://localhost:5173', 'http://localhost:5174'] },
+    cors: { origins: ['*'], credentials: true },
     tracker: { sessionTimeoutMinutes: 30 },
     realtime: { broadcastIntervalMs: 2000, activeUserTtlSeconds: 60 },
     geo: { defaultLat: 0, defaultLng: 0, defaultCity: 'Unknown', defaultCountry: 'Unknown', defaultCountryCode: 'XX' },
@@ -62,7 +62,10 @@ export function loadConfig(): OrbitraConfig {
     config.server.port = Number(process.env.PORT)
   }
   if (process.env.CORS_ORIGINS) {
-    config.cors.origins = process.env.CORS_ORIGINS.split(',')
+    config.cors.origins = process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+  }
+  if (process.env.CORS_CREDENTIALS !== undefined) {
+    config.cors.credentials = process.env.CORS_CREDENTIALS === 'true'
   }
 
   _config = config
