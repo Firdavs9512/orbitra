@@ -144,6 +144,29 @@ export class SQLiteProvider implements DatabaseProvider {
     return row?.count ?? 0
   }
 
+  async updateUser(userId: string, data: { email?: string; fullName?: string }): Promise<void> {
+    const updates: string[] = []
+    const values: any[] = []
+
+    if (data.email !== undefined) {
+      updates.push('email = ?')
+      values.push(data.email)
+    }
+    if (data.fullName !== undefined) {
+      updates.push('full_name = ?')
+      values.push(data.fullName)
+    }
+
+    if (updates.length > 0) {
+      values.push(userId)
+      this.db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...values)
+    }
+  }
+
+  async updateUserPassword(userId: string, passwordHash: string): Promise<void> {
+    this.db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(passwordHash, userId)
+  }
+
   // ── Sites ──
 
   async createSite(site: { id: string; userId: string; name: string; domain: string; trackingId: string }): Promise<void> {

@@ -132,6 +132,40 @@ export class ClickHouseProvider implements DatabaseProvider {
     return Number(rows[0]?.count ?? 0)
   }
 
+  async updateUser(userId: string, data: { email?: string; fullName?: string }): Promise<void> {
+    const user = await this.getUserById(userId)
+    if (!user) return
+    await this.client.insert({
+      table: 'users',
+      values: [{
+        id: user.id,
+        email: data.email !== undefined ? data.email : user.email,
+        full_name: data.fullName !== undefined ? data.fullName : user.fullName,
+        password_hash: user.passwordHash,
+        role: user.role,
+        created_at: user.createdAt
+      }],
+      format: 'JSONEachRow',
+    })
+  }
+
+  async updateUserPassword(userId: string, passwordHash: string): Promise<void> {
+    const user = await this.getUserById(userId)
+    if (!user) return
+    await this.client.insert({
+      table: 'users',
+      values: [{
+        id: user.id,
+        email: user.email,
+        full_name: user.fullName,
+        password_hash: passwordHash,
+        role: user.role,
+        created_at: user.createdAt
+      }],
+      format: 'JSONEachRow',
+    })
+  }
+
   // ── Sites ──
 
   async createSite(site: { id: string; userId: string; name: string; domain: string; trackingId: string }): Promise<void> {

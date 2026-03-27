@@ -6,6 +6,7 @@ import SitesPage from './pages/SitesPage'
 import AddSitePage from './pages/AddSitePage'
 import DashboardPage from './pages/DashboardPage'
 import UsersPage from './pages/UsersPage'
+import ProfilePage from './pages/ProfilePage'
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
       <Route path="/sites" element={<ProtectedRoute><SitesPage /></ProtectedRoute>} />
       <Route path="/sites/new" element={<ProtectedRoute><AddSitePage /></ProtectedRoute>} />
       <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
       <Route path="/dashboard/:siteId" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/sites" replace />} />
     </Routes>

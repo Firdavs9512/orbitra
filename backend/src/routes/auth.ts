@@ -91,6 +91,92 @@ auth.get('/me', authMiddleware, async (c) => {
   return c.json({ id: user.id, email: user.email, fullName: user.fullName, role: user.role })
 })
 
+// GET /api/auth/profile - Get current user profile
+auth.get('/profile', authMiddleware, async (c) => {
+  const db = c.get('db')
+  const userId = c.get('userId')
+
+  const user = await db.getUserById(userId)
+  if (!user) {
+    return c.json({ error: 'User not found' }, 404)
+  }
+
+  return c.json({ id: user.id, email: user.email, fullName: user.fullName, role: user.role })
+})
+
+// PATCH /api/auth/profile - Update user profile
+auth.patch('/profile', authMiddleware, async (c) => {
+  const db = c.get('db')
+  const userId = c.get('userId')
+  const body = await c.req.json()
+  const { fullName, email } = body
+
+  // Validation
+  if (fullName !== undefined && (typeof fullName !== 'string' || fullName.length < 2)) {
+    return c.json({ error: 'Full name must be at least 2 characters' }, 400)
+  }
+  if (email !== undefined && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return c.json({ error: 'Invalid email format' }, 400)
+  }
+
+  // Check if email is already taken by another user
+  if (email !== undefined) {
+    const existing = await db.getUserByEmail(email)
+    if (existing && existing.id !== userId) {
+      return c.json({ error: 'Email already in use' }, 409)
+    }
+  }
+
+  // Update user
+  const updates: { email?: string; fullName?: string } = {}
+  if (email !== undefined) updates.email = email
+  if (fullName !== undefined) updates.fullName = fullName
+
+  if (Object.keys(updates).length > 0) {
+    await db.updateUser(userId, updates)
+  }
+
+  const updatedUser = await db.getUserById(userId)
+  if (!updatedUser) {
+    return c.json({ error: 'User not found' }, 404)
+  }
+
+  return c.json({ id: updatedUser.id, email: updatedUser.email, fullName: updatedUser.fullName, role: updatedUser.role })
+})
+
+// POST /api/auth/change-password - Change password
+auth.post('/change-password', authMiddleware, async (c) => {
+  const db = c.get('db')
+  const userId = c.get('userId')
+  const body = await c.req.json()
+  const { oldPassword, newPassword } = body
+
+  // Validation
+  if (!oldPassword || !newPassword) {
+    return c.json({ error: 'Old password and new password are required' }, 400)
+  }
+  if (newPassword.length < 8) {
+    return c.json({ error: 'New password must be at least 8 characters' }, 400)
+  }
+
+  // Get user and verify old password
+  const user = await db.getUserById(userId)
+  if (!user) {
+    return c.json({ error: 'User not found' }, 404)
+  }
+
+  const valid = await Bun.password.verify(oldPassword, user.passwordHash)
+  if (!valid) {
+    return c.json({ error: 'Current password is incorrect' }, 401)
+  }
+
+  // Hash and update new password
+  const passwordHash = await Bun.password.hash(newPassword, { algorithm: 'bcrypt', cost: 12 })
+  await db.updateUserPassword(userId, passwordHash)
+
+  return c.json({ success: true })
+})
+
 // GET /api/auth/users - List all users (admin only)
 auth.get('/users', authMiddleware, adminMiddleware, async (c) => {
   const db = c.get('db')
