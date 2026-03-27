@@ -15,14 +15,14 @@ Open-source, self-hosted real-time web analytics platform.
 - **Runtime:** Bun
 - **Framework:** Hono
 - **Real-time:** Bun native WebSocket + Redis (pub/sub)
-- **Database:** Provider-based (foydalanuvchi tanlaydi)
-  - `sqlite` — yengil, kam resurs talab qiladi (kichik VPS, shaxsiy server)
-  - `clickhouse` — yuqori hajm uchun (katta saytlar, millionlab eventlar)
+- **Database:** Provider-based (user selects)
+  - `sqlite` — lightweight, low resource requirements (small VPS, personal server)
+  - `clickhouse` — for high volume (large sites, millions of events)
 
 ## Architecture
 
 ```
-[Saytlar]                              [Dashboard]
+[Websites]                              [Dashboard]
     │                                       ▲
     │  track.js (beacon/fetch)              │ WebSocket (live data)
     ▼                                       │
@@ -48,7 +48,7 @@ Open-source, self-hosted real-time web analytics platform.
 
 ## Database Provider System
 
-Database provider `orbitra.config.ts` orqali tanlanadi:
+Database provider is selected through `orbitra.config.ts`:
 
 ```ts
 export default {
@@ -71,7 +71,7 @@ export default {
 }
 ```
 
-Har bir provider bir xil interface'ni implement qiladi:
+Each provider implements the same interface:
 
 ```ts
 interface DatabaseProvider {
@@ -120,7 +120,7 @@ orbitra/
 │   │   └── utils/
 │   ├── orbitra.config.ts
 │   └── package.json
-├── Crucix/            # OSINT intelligence engine (alohida)
+├── Crucix/            # OSINT intelligence engine (separate)
 └── PROJECT.md
 ```
 

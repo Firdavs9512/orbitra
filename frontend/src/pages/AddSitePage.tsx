@@ -10,7 +10,7 @@ import useFormValidation from '../hooks/useFormValidation'
 import { api } from '../lib/api'
 import type { Website } from '../types/analytics'
 
-/* ── Orbital fon animatsiyasi ── */
+/* ── Orbital background animation ── */
 function OrbitalBackground({ generated }: { generated: boolean }) {
   const rings = [
     { size: 300, opacity: 0.07, speed: 25 },
@@ -54,7 +54,7 @@ function OrbitalBackground({ generated }: { generated: boolean }) {
         }}
       />
 
-      {/* Orbital rings — markazda */}
+      {/* Orbital rings — centered */}
       {rings.map((ring, i) => (
         <div
           key={i}
@@ -100,7 +100,7 @@ function OrbitalBackground({ generated }: { generated: boolean }) {
         />
       ))}
 
-      {/* Connection lines — chapdan formaga chiziqlar */}
+      {/* Connection lines — lines from left to form */}
       <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.06 }}>
         <line x1="10%" y1="25%" x2="35%" y2="40%" stroke="var(--color-accent)" strokeWidth="1" />
         <line x1="90%" y1="20%" x2="65%" y2="35%" stroke="var(--color-accent2)" strokeWidth="1" />
@@ -108,7 +108,7 @@ function OrbitalBackground({ generated }: { generated: boolean }) {
         <line x1="15%" y1="80%" x2="35%" y2="60%" stroke="var(--color-accent2)" strokeWidth="1" />
       </svg>
 
-      {/* Markaziy glow nuqta */}
+      {/* Central glow point */}
       <div
         className="absolute rounded-full"
         style={{
@@ -137,7 +137,7 @@ function OrbitalBackground({ generated }: { generated: boolean }) {
   )
 }
 
-/* ── Qo'shimcha info paneli (o'ng tomon) ── */
+/* ── Additional info panel (right side) ── */
 function InfoPanel({ generated }: { generated: boolean }) {
   const steps = [
     { num: '01', label: 'Enter website details', done: generated },
@@ -288,12 +288,12 @@ export default function AddSitePage() {
       sidebar={<DashboardSidebar />}
       main={
         <div className="relative min-h-full">
-          {/* Orbital background — butun sahifa fonida */}
+          {/* Orbital background — across entire page */}
           <OrbitalBackground generated={generated} />
 
-          {/* Kontent */}
+          {/* Content */}
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-5 gap-8 min-h-full items-center p-6 lg:p-10">
-            {/* Chap tomon: Forma (3/5) */}
+            {/* Left side: Form (3/5) */}
             <div className="lg:col-span-3 flex justify-center">
               {!trackingId ? (
                 <GlassCard className="w-full max-w-md">
@@ -439,7 +439,7 @@ export default function AddSitePage() {
               )}
             </div>
 
-            {/* O'ng tomon: Info panel (2/5) */}
+            {/* Right side: Info panel (2/5) */}
             <div className="hidden lg:block lg:col-span-2">
               <InfoPanel generated={generated} />
             </div>
