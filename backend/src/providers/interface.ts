@@ -7,9 +7,13 @@ export interface DatabaseProvider {
   close(): Promise<void>
 
   // Users (auth)
-  createUser(user: { id: string; email: string; fullName: string; passwordHash: string }): Promise<void>
+  createUser(user: { id: string; email: string; fullName: string; passwordHash: string; role: string }): Promise<void>
   getUserByEmail(email: string): Promise<UserRow | null>
   getUserById(id: string): Promise<UserRow | null>
+  getAllUsers(): Promise<UserRow[]>
+  updateUserRole(userId: string, role: string): Promise<void>
+  deleteUser(userId: string): Promise<void>
+  getUserCount(): Promise<number>
 
   // Sites
   createSite(site: {
@@ -20,6 +24,7 @@ export interface DatabaseProvider {
     trackingId: string
   }): Promise<void>
   getSitesByUserId(userId: string): Promise<SiteRow[]>
+  getAllSites(): Promise<SiteRow[]>
   getSiteByTrackingId(trackingId: string): Promise<SiteRow | null>
   getSiteById(id: string): Promise<SiteRow | null>
   updateSiteLastData(siteId: string, timestamp: string): Promise<void>

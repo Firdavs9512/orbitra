@@ -5,6 +5,7 @@ import RegisterPage from './pages/RegisterPage'
 import SitesPage from './pages/SitesPage'
 import AddSitePage from './pages/AddSitePage'
 import DashboardPage from './pages/DashboardPage'
+import UsersPage from './pages/UsersPage'
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
       <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
       <Route path="/sites" element={<ProtectedRoute><SitesPage /></ProtectedRoute>} />
       <Route path="/sites/new" element={<ProtectedRoute><AddSitePage /></ProtectedRoute>} />
+      <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
       <Route path="/dashboard/:siteId" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/sites" replace />} />
     </Routes>

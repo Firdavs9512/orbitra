@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { authMiddleware } from '../middleware/auth'
+import { authMiddleware, adminMiddleware } from '../middleware/auth'
 import { generateId, generateTrackingId } from '../utils/id'
 import type { DatabaseProvider } from '../providers/interface'
 import type { Website } from '../types'
@@ -9,6 +9,7 @@ const sites = new Hono<{
   Variables: {
     db: DatabaseProvider
     userId: string
+    userRole: string
     realtime: RealtimeService
   }
 }>()
@@ -16,13 +17,17 @@ const sites = new Hono<{
 // All routes require auth
 sites.use('*', authMiddleware)
 
-// GET /api/sites
+// GET /api/sites - All users can view sites
 sites.get('/', async (c) => {
   const db = c.get('db')
   const realtime = c.get('realtime')
   const userId = c.get('userId')
+  const userRole = c.get('userRole')
 
-  const rows = await db.getSitesByUserId(userId)
+  // Admins see all sites, viewers only see their own
+  const rows = userRole === 'admin'
+    ? await db.getAllSites()
+    : await db.getSitesByUserId(userId)
 
   const websites: Website[] = await Promise.all(
     rows.map(async (row) => {
@@ -50,8 +55,8 @@ sites.get('/', async (c) => {
   return c.json(websites)
 })
 
-// POST /api/sites
-sites.post('/', async (c) => {
+// POST /api/sites - Admin only
+sites.post('/', adminMiddleware, async (c) => {
   const db = c.get('db')
   const userId = c.get('userId')
   const body = await c.req.json()
@@ -83,14 +88,13 @@ sites.post('/', async (c) => {
   return c.json(website, 201)
 })
 
-// DELETE /api/sites/:id
-sites.delete('/:id', async (c) => {
+// DELETE /api/sites/:id - Admin only
+sites.delete('/:id', adminMiddleware, async (c) => {
   const db = c.get('db')
-  const userId = c.get('userId')
   const siteId = c.req.param('id')
 
   const site = await db.getSiteById(siteId)
-  if (!site || site.userId !== userId) {
+  if (!site) {
     return c.json({ error: 'Site not found' }, 404)
   }
 

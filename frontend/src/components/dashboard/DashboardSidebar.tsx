@@ -14,6 +14,20 @@ const NAV_ITEMS = [
     ),
   },
   {
+    id: 'users',
+    label: 'Users',
+    path: '/users',
+    adminOnly: true,
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+  },
+  {
     id: 'dashboard',
     label: 'Dashboard',
     path: '/dashboard',
@@ -64,6 +78,7 @@ const NAV_ITEMS = [
 
 function getActiveId(pathname: string): string {
   if (pathname.startsWith('/sites')) return 'sites'
+  if (pathname.startsWith('/users')) return 'users'
   if (pathname.startsWith('/dashboard')) return 'dashboard'
   return 'dashboard'
 }
@@ -71,7 +86,7 @@ function getActiveId(pathname: string): string {
 export default function DashboardSidebar() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { logout } = useAuth()
+  const { logout, isAdmin } = useAuth()
   const active = getActiveId(location.pathname)
 
   const siteIdMatch = location.pathname.match(/^\/dashboard\/(.+)/)
@@ -85,7 +100,7 @@ export default function DashboardSidebar() {
         backdropFilter: 'blur(20px)',
       }}
     >
-      {NAV_ITEMS.map((item) => (
+      {NAV_ITEMS.filter((item: any) => !item.adminOnly || isAdmin).map((item: any) => (
         <button
           key={item.id}
           onClick={() => navigate(item.path === '/dashboard' ? dashboardPath : item.path)}

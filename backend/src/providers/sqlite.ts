@@ -40,9 +40,17 @@ export class SQLiteProvider implements DatabaseProvider {
         email TEXT UNIQUE NOT NULL,
         full_name TEXT NOT NULL,
         password_hash TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'viewer',
         created_at TEXT NOT NULL DEFAULT (datetime('now'))
       )
     `)
+
+    // Migration: Add role column if it doesn't exist (for existing databases)
+    try {
+      this.db.exec(`ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'viewer'`)
+    } catch (e) {
+      // Column already exists, ignore error
+    }
 
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS sites (
@@ -87,22 +95,53 @@ export class SQLiteProvider implements DatabaseProvider {
 
   // ── Users ──
 
-  async createUser(user: { id: string; email: string; fullName: string; passwordHash: string }): Promise<void> {
+  async createUser(user: { id: string; email: string; fullName: string; passwordHash: string; role: string }): Promise<void> {
     this.db.prepare(
-      'INSERT INTO users (id, email, full_name, password_hash) VALUES (?, ?, ?, ?)'
-    ).run(user.id, user.email, user.fullName, user.passwordHash)
+      'INSERT INTO users (id, email, full_name, password_hash, role) VALUES (?, ?, ?, ?, ?)'
+    ).run(user.id, user.email, user.fullName, user.passwordHash, user.role)
   }
 
   async getUserByEmail(email: string): Promise<UserRow | null> {
     const row = this.db.prepare('SELECT * FROM users WHERE email = ?').get(email) as any
     if (!row) return null
-    return { id: row.id, email: row.email, fullName: row.full_name, passwordHash: row.password_hash, createdAt: row.created_at }
+    return { id: row.id, email: row.email, fullName: row.full_name, passwordHash: row.password_hash, role: row.role, createdAt: row.created_at }
   }
 
   async getUserById(id: string): Promise<UserRow | null> {
     const row = this.db.prepare('SELECT * FROM users WHERE id = ?').get(id) as any
     if (!row) return null
-    return { id: row.id, email: row.email, fullName: row.full_name, passwordHash: row.password_hash, createdAt: row.created_at }
+    return { id: row.id, email: row.email, fullName: row.full_name, passwordHash: row.password_hash, role: row.role, createdAt: row.created_at }
+  }
+
+  async getAllUsers(): Promise<UserRow[]> {
+    const rows = this.db.prepare('SELECT * FROM users ORDER BY created_at DESC').all() as any[]
+    return rows.map(row => ({
+      id: row.id,
+      email: row.email,
+      fullName: row.full_name,
+      passwordHash: row.password_hash,
+      role: row.role,
+      createdAt: row.created_at
+    }))
+  }
+
+  async updateUserRole(userId: string, role: string): Promise<void> {
+    this.db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, userId)
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    // Delete user's sites and their events
+    const sites = await this.getSitesByUserId(userId)
+    for (const site of sites) {
+      await this.deleteSite(site.id)
+    }
+    // Delete the user
+    this.db.prepare('DELETE FROM users WHERE id = ?').run(userId)
+  }
+
+  async getUserCount(): Promise<number> {
+    const row = this.db.prepare('SELECT COUNT(*) as count FROM users').get() as any
+    return row?.count ?? 0
   }
 
   // ── Sites ──
@@ -115,6 +154,11 @@ export class SQLiteProvider implements DatabaseProvider {
 
   async getSitesByUserId(userId: string): Promise<SiteRow[]> {
     const rows = this.db.prepare('SELECT * FROM sites WHERE user_id = ? ORDER BY created_at DESC').all(userId) as any[]
+    return rows.map(this.mapSiteRow)
+  }
+
+  async getAllSites(): Promise<SiteRow[]> {
+    const rows = this.db.prepare('SELECT * FROM sites ORDER BY created_at DESC').all() as any[]
     return rows.map(this.mapSiteRow)
   }
 

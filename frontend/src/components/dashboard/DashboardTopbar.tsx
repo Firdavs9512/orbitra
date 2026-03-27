@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface DashboardTopbarProps {
   isConnected?: boolean
@@ -6,6 +7,7 @@ interface DashboardTopbarProps {
 }
 
 export default function DashboardTopbar({ isConnected = true, activeUsers }: DashboardTopbarProps) {
+  const { user } = useAuth()
   const [time, setTime] = useState(new Date())
   const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement)
 
@@ -49,6 +51,17 @@ export default function DashboardTopbar({ isConnected = true, activeUsers }: Das
         <span className="font-mono text-[10px] uppercase tracking-[0.1em] px-2.5 py-1 border border-border text-dim">
           Analytics
         </span>
+        {user && (
+          <span
+            className="font-mono text-[9px] uppercase tracking-[0.14em] px-2.5 py-1 border border-border"
+            style={{
+              color: user.role === 'admin' ? '#64f0c8' : '#ffb84c',
+              borderColor: user.role === 'admin' ? 'rgba(100, 240, 200, 0.3)' : 'rgba(255, 184, 76, 0.3)'
+            }}
+          >
+            {user.role}
+          </span>
+        )}
       </div>
 
       {/* Center: Clock */}
