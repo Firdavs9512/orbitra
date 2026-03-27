@@ -14,6 +14,8 @@ export interface DatabaseProvider {
   updateUserRole(userId: string, role: string): Promise<void>
   deleteUser(userId: string): Promise<void>
   getUserCount(): Promise<number>
+  updateUser(userId: string, data: { email?: string; fullName?: string }): Promise<void>
+  updateUserPassword(userId: string, passwordHash: string): Promise<void>
 
   // Sites
   createSite(site: {
