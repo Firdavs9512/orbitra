@@ -7,6 +7,7 @@ import { initGeo } from './services/geo'
 import { RealtimeService } from './services/realtime'
 import { AnalyticsService } from './services/analytics'
 import { setupWebSocketHandlers } from './websocket/handler'
+import { seedDefaultAdminUser } from './utils/seeder'
 import authRoutes from './routes/auth'
 import siteRoutes from './routes/sites'
 import ingestRoutes from './routes/ingest'
@@ -31,6 +32,9 @@ const config = loadConfig()
 
 // Initialize database provider
 const db = await createDatabaseProvider(config)
+
+// Seed default admin user if database is empty
+await seedDefaultAdminUser(db, config.seeder)
 
 // Initialize Redis
 const redis = createRedisClient(config)

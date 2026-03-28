@@ -264,7 +264,7 @@ export default function AddSitePage() {
   }
 
   const trackingScript = trackingId
-    ? `<script src="https://orbitra.io/track.js" data-site="${trackingId}"></script>`
+    ? `<script src="https://orbitra.sh/track.js" data-site="${trackingId}"></script>`
     : ''
 
   const copyScript = () => {

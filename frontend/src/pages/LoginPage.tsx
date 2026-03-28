@@ -80,7 +80,7 @@ export default function LoginPage() {
             onChange={handleChange}
             onBlur={handleBlur}
             error={errors.email}
-            placeholder="operator@orbitra.io"
+            placeholder="operator@orbitra.sh"
           />
 
           <Input
