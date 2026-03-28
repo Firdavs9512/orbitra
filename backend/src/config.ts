@@ -11,6 +11,7 @@ export interface OrbitraConfig {
   tracker: { sessionTimeoutMinutes: number }
   realtime: { broadcastIntervalMs: number; activeUserTtlSeconds: number }
   geo: { defaultLat: number; defaultLng: number; defaultCity: string; defaultCountry: string; defaultCountryCode: string }
+  seeder: { adminEmail: string; adminPassword: string; adminName: string }
 }
 
 let _config: OrbitraConfig | null = null
@@ -31,6 +32,7 @@ export function loadConfig(): OrbitraConfig {
     tracker: { sessionTimeoutMinutes: 30 },
     realtime: { broadcastIntervalMs: 2000, activeUserTtlSeconds: 60 },
     geo: { defaultLat: 0, defaultLng: 0, defaultCity: 'Unknown', defaultCountry: 'Unknown', defaultCountryCode: 'XX' },
+    seeder: { adminEmail: 'admin@orbitra.sh', adminPassword: 'changeme', adminName: 'Admin' },
   }
 
   // Load from orbitra.config.ts if exists (runtime)
@@ -45,6 +47,7 @@ export function loadConfig(): OrbitraConfig {
       Object.assign(config.tracker, userConfig.tracker)
       Object.assign(config.realtime, userConfig.realtime)
       if (userConfig.geo) Object.assign(config.geo, userConfig.geo)
+      if (userConfig.seeder) Object.assign(config.seeder, userConfig.seeder)
     }
   } catch {}
 
@@ -94,6 +97,17 @@ export function loadConfig(): OrbitraConfig {
   const corsCredentials = process.env.ORBITRA_CORS_CREDENTIALS || process.env.CORS_CREDENTIALS
   if (corsCredentials !== undefined) {
     config.cors.credentials = corsCredentials === 'true'
+  }
+
+  // Seeder configuration
+  if (process.env.ORBITRA_ADMIN_EMAIL) {
+    config.seeder.adminEmail = process.env.ORBITRA_ADMIN_EMAIL
+  }
+  if (process.env.ORBITRA_ADMIN_PASSWORD) {
+    config.seeder.adminPassword = process.env.ORBITRA_ADMIN_PASSWORD
+  }
+  if (process.env.ORBITRA_ADMIN_NAME) {
+    config.seeder.adminName = process.env.ORBITRA_ADMIN_NAME
   }
 
   _config = config
