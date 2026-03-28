@@ -24,10 +24,8 @@ sites.get('/', async (c) => {
   const userId = c.get('userId')
   const userRole = c.get('userRole')
 
-  // Admins see all sites, viewers only see their own
-  const rows = userRole === 'admin'
-    ? await db.getAllSites()
-    : await db.getSitesByUserId(userId)
+  // All users can see all sites (viewers use read-only/monitoring mode)
+  const rows = await db.getAllSites()
 
   const websites: Website[] = await Promise.all(
     rows.map(async (row) => {
