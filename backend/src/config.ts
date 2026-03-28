@@ -48,24 +48,52 @@ export function loadConfig(): OrbitraConfig {
     }
   } catch {}
 
-  // Environment variable overrides
-  if (process.env.DATABASE_PROVIDER) {
-    config.database.provider = process.env.DATABASE_PROVIDER as 'sqlite' | 'clickhouse'
+  // Environment variable overrides (ORBITRA_ prefixed vars take precedence)
+  // Server configuration
+  if (process.env.ORBITRA_PORT || process.env.PORT) {
+    config.server.port = Number(process.env.ORBITRA_PORT || process.env.PORT)
   }
-  if (process.env.REDIS_URL) {
-    config.redis.url = process.env.REDIS_URL
+
+  // Database configuration
+  if (process.env.ORBITRA_DB_PROVIDER || process.env.DATABASE_PROVIDER) {
+    config.database.provider = (process.env.ORBITRA_DB_PROVIDER || process.env.DATABASE_PROVIDER) as 'sqlite' | 'clickhouse'
   }
-  if (process.env.JWT_SECRET) {
-    config.auth.jwtSecret = process.env.JWT_SECRET
+  if (process.env.ORBITRA_DB_SQLITE_PATH) {
+    config.database.sqlite.path = process.env.ORBITRA_DB_SQLITE_PATH
   }
-  if (process.env.PORT) {
-    config.server.port = Number(process.env.PORT)
+  if (process.env.ORBITRA_DB_CLICKHOUSE_HOST || process.env.ORBITRA_DB_CLICKHOUSE_PORT) {
+    const host = process.env.ORBITRA_DB_CLICKHOUSE_HOST || 'localhost'
+    const port = process.env.ORBITRA_DB_CLICKHOUSE_PORT || '8123'
+    config.database.clickhouse.url = `http://${host}:${port}`
   }
-  if (process.env.CORS_ORIGINS) {
-    config.cors.origins = process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+  if (process.env.ORBITRA_DB_CLICKHOUSE_DATABASE) {
+    config.database.clickhouse.database = process.env.ORBITRA_DB_CLICKHOUSE_DATABASE
   }
-  if (process.env.CORS_CREDENTIALS !== undefined) {
-    config.cors.credentials = process.env.CORS_CREDENTIALS === 'true'
+  if (process.env.ORBITRA_DB_CLICKHOUSE_USERNAME) {
+    config.database.clickhouse.username = process.env.ORBITRA_DB_CLICKHOUSE_USERNAME
+  }
+  if (process.env.ORBITRA_DB_CLICKHOUSE_PASSWORD !== undefined) {
+    config.database.clickhouse.password = process.env.ORBITRA_DB_CLICKHOUSE_PASSWORD
+  }
+
+  // Redis configuration
+  if (process.env.ORBITRA_REDIS_URL || process.env.REDIS_URL) {
+    config.redis.url = process.env.ORBITRA_REDIS_URL || process.env.REDIS_URL
+  }
+
+  // Auth configuration
+  if (process.env.ORBITRA_JWT_SECRET || process.env.JWT_SECRET) {
+    config.auth.jwtSecret = process.env.ORBITRA_JWT_SECRET || process.env.JWT_SECRET
+  }
+
+  // CORS configuration
+  if (process.env.ORBITRA_CORS_ORIGINS || process.env.CORS_ORIGINS) {
+    const origins = process.env.ORBITRA_CORS_ORIGINS || process.env.CORS_ORIGINS
+    config.cors.origins = origins.split(',').map(o => o.trim())
+  }
+  const corsCredentials = process.env.ORBITRA_CORS_CREDENTIALS || process.env.CORS_CREDENTIALS
+  if (corsCredentials !== undefined) {
+    config.cors.credentials = corsCredentials === 'true'
   }
 
   _config = config

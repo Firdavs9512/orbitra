@@ -90,6 +90,40 @@ bun install
 
 ### 2. Configure
 
+You can configure Orbitra using either environment variables (recommended) or a config file.
+
+#### Option A: Environment Variables (Recommended)
+
+```bash
+cd backend
+cp .env.example .env
+```
+
+Edit `.env`:
+
+```bash
+# Database
+ORBITRA_DB_PROVIDER=sqlite
+ORBITRA_DB_SQLITE_PATH=./data/orbitra.db
+
+# Redis
+ORBITRA_REDIS_URL=redis://localhost:6379
+
+# Server
+ORBITRA_PORT=3000
+
+# Auth (change in production!)
+ORBITRA_JWT_SECRET=your-secret-key-here
+
+# CORS
+ORBITRA_CORS_ORIGINS=*
+ORBITRA_CORS_CREDENTIALS=true
+```
+
+See [Configuration](#configuration) for all available options.
+
+#### Option B: Config File
+
 ```bash
 cd backend
 cp orbitra.config.example.ts orbitra.config.ts
@@ -113,6 +147,8 @@ export default {
   },
 }
 ```
+
+**Note:** Environment variables take precedence over config file values.
 
 ### 3. Run
 
@@ -159,6 +195,85 @@ Dashboard will be available at `http://localhost:5173`
 │              (pub/sub, sessions,               │
 │               active users)                    │
 └───────────────────────────────────────────────┘
+```
+
+## Configuration
+
+Orbitra supports two configuration methods:
+
+1. **Environment variables** (recommended for production)
+2. **Config file** (`orbitra.config.ts`)
+
+Environment variables take precedence over config file values, allowing you to override settings without modifying code.
+
+### Environment Variables
+
+All configuration options are available as environment variables with the `ORBITRA_` prefix:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `ORBITRA_PORT` | Server port | `3000` |
+| `ORBITRA_DB_PROVIDER` | Database type: `sqlite` or `clickhouse` | `sqlite` |
+| `ORBITRA_DB_SQLITE_PATH` | Path to SQLite database file | `./data/orbitra.db` |
+| `ORBITRA_DB_CLICKHOUSE_HOST` | ClickHouse server host | `localhost` |
+| `ORBITRA_DB_CLICKHOUSE_PORT` | ClickHouse server port | `8123` |
+| `ORBITRA_DB_CLICKHOUSE_DATABASE` | ClickHouse database name | `orbitra` |
+| `ORBITRA_DB_CLICKHOUSE_USERNAME` | ClickHouse username | `default` |
+| `ORBITRA_DB_CLICKHOUSE_PASSWORD` | ClickHouse password | _(empty)_ |
+| `ORBITRA_REDIS_URL` | Redis connection URL | `redis://localhost:6379` |
+| `ORBITRA_JWT_SECRET` | JWT secret key (change in production!) | `change-me-in-production` |
+| `ORBITRA_CORS_ORIGINS` | Allowed CORS origins (comma-separated) | `*` |
+| `ORBITRA_CORS_CREDENTIALS` | Allow credentials in CORS requests | `true` |
+
+**Legacy variables** (backward compatibility):
+- `PORT`, `DATABASE_PROVIDER`, `REDIS_URL`, `JWT_SECRET`, `CORS_ORIGINS`, `CORS_CREDENTIALS`
+
+These work but `ORBITRA_` prefix is recommended.
+
+### Config File
+
+Create `backend/orbitra.config.ts`:
+
+```ts
+export default {
+  server: {
+    port: 3000,
+    host: '0.0.0.0',
+  },
+  database: {
+    provider: 'sqlite', // 'sqlite' | 'clickhouse'
+    sqlite: {
+      path: './data/orbitra.db',
+    },
+    clickhouse: {
+      url: 'http://localhost:8123',
+      database: 'orbitra',
+      username: 'default',
+      password: '',
+    },
+  },
+  redis: {
+    url: 'redis://localhost:6379',
+    prefix: 'orb:',
+  },
+  auth: {
+    jwtSecret: 'change-me-in-production',
+    jwtExpiresIn: '7d',
+  },
+  cors: {
+    origins: ['*'],
+    credentials: true,
+  },
+}
+```
+
+### .env File
+
+For quick setup with environment variables, create a `.env` file in the `backend` directory. Bun automatically loads `.env` files.
+
+```bash
+cd backend
+cp .env.example .env
 ```
 
 ## Database Providers
