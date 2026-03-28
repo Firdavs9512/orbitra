@@ -417,7 +417,7 @@ function GlobeComponent({ points, serverLocation }: GlobeProps) {
   return (
     <div
       ref={wrapperRef}
-      className="w-full min-h-[480px] flex-1 border border-border relative overflow-hidden"
+      className="w-full h-full border border-border relative overflow-hidden"
       style={{
         background: 'radial-gradient(ellipse at center, rgba(4,12,20,1), rgba(2,4,8,1))',
       }}

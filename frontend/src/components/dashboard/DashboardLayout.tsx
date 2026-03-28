@@ -44,10 +44,7 @@ export default function DashboardLayout({ topbar, sidebar, main, rightRail }: Da
           <div className="min-h-0">{sidebar}</div>
 
           {/* Main content */}
-          <div className="flex flex-col gap-2.5 min-h-0 overflow-y-auto" style={{
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'rgba(100,240,200,0.15) transparent',
-          }}>
+          <div className="flex flex-col gap-2.5 min-h-0">
             {main}
           </div>
 

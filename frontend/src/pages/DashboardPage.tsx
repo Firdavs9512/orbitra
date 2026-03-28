@@ -28,8 +28,10 @@ export default function DashboardPage() {
       sidebar={<DashboardSidebar />}
       main={
         <>
-          <Globe points={data.globePoints} serverLocation={data.serverLocation} />
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="flex-1 min-h-0">
+            <Globe points={data.globePoints} serverLocation={data.serverLocation} />
+          </div>
+          <div className="grid grid-cols-2 gap-2.5 shrink-0">
             <TopPages pages={data.topPages} />
             <UsersByCountry countries={data.topCountries} />
           </div>

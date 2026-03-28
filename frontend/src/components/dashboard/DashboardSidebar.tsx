@@ -28,53 +28,6 @@ const NAV_ITEMS = [
     ),
   },
   {
-    id: 'dashboard',
-    label: 'Dashboard',
-    path: '/dashboard',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" />
-        <rect x="14" y="14" width="7" height="7" rx="1" />
-      </svg>
-    ),
-  },
-  {
-    id: 'globe',
-    label: 'Globe',
-    path: '/dashboard',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M2 12h20" />
-        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-      </svg>
-    ),
-  },
-  {
-    id: 'analytics',
-    label: 'Analytics',
-    path: '/dashboard',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 3v18h18" />
-        <path d="M7 16l4-8 4 4 4-8" />
-      </svg>
-    ),
-  },
-  {
-    id: 'settings',
-    label: 'Settings',
-    path: '/dashboard',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-      </svg>
-    ),
-  },
-  {
     id: 'profile',
     label: 'Profile',
     path: '/profile',
@@ -91,8 +44,7 @@ function getActiveId(pathname: string): string {
   if (pathname.startsWith('/sites')) return 'sites'
   if (pathname.startsWith('/users')) return 'users'
   if (pathname.startsWith('/profile')) return 'profile'
-  if (pathname.startsWith('/dashboard')) return 'dashboard'
-  return 'dashboard'
+  return 'sites'
 }
 
 export default function DashboardSidebar() {
@@ -100,9 +52,6 @@ export default function DashboardSidebar() {
   const location = useLocation()
   const { logout, isAdmin } = useAuth()
   const active = getActiveId(location.pathname)
-
-  const siteIdMatch = location.pathname.match(/^\/dashboard\/(.+)/)
-  const dashboardPath = siteIdMatch ? `/dashboard/${siteIdMatch[1]}` : '/sites'
 
   return (
     <div
@@ -115,7 +64,7 @@ export default function DashboardSidebar() {
       {NAV_ITEMS.filter((item: any) => !item.adminOnly || isAdmin).map((item: any) => (
         <button
           key={item.id}
-          onClick={() => navigate(item.path === '/dashboard' ? dashboardPath : item.path)}
+          onClick={() => navigate(item.path)}
           title={item.label}
           className={`
             relative w-10 h-10 flex items-center justify-center rounded transition-all duration-200 cursor-pointer
